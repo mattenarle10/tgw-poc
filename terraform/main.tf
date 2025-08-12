@@ -1,72 +1,73 @@
 locals {
-  name_prefix = "matt-tgw-poc"
-  tags = {
-    Project     = local.name_prefix
+  common_tags = {
+    Project     = "matt-tgw-poc"
     Environment = "poc"
   }
 }
 
-# VPC A (Sydney)
-resource "aws_vpc" "vpc_a" {
-  cidr_block           = "10.10.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-  tags = merge(local.tags, { Name = "${local.name_prefix}-vpc-a" })
+# VPC A in Sydney (module)
+module "vpc_a" {
+  source                  = "./modules/vpc-basic"
+  resource_name_prefix    = "matt-tgw-poc-syd"
+  cidr_block              = "10.10.0.0/16"
+  private_subnet_cidr     = "10.10.1.0/24"
+  availability_zone_index = 0
+  common_tags             = local.common_tags
 }
 
-data "aws_availability_zones" "syd" {}
-
-resource "aws_subnet" "vpc_a_private_az1" {
-  vpc_id                  = aws_vpc.vpc_a.id
-  cidr_block              = "10.10.1.0/24"
-  availability_zone       = data.aws_availability_zones.syd.names[0]
-  map_public_ip_on_launch = false
-  tags = merge(local.tags, { Name = "${local.name_prefix}-vpc-a-priv-az1" })
+# VPC B in Singapore (module, aliased provider)
+module "vpc_b" {
+  source                  = "./modules/vpc-basic"
+  providers               = { aws = aws.sg }
+  resource_name_prefix    = "matt-tgw-poc-sg"
+  cidr_block              = "10.20.0.0/16"
+  private_subnet_cidr     = "10.20.1.0/24"
+  availability_zone_index = 0
+  common_tags             = local.common_tags
 }
 
-# VPC B (Singapore)
-resource "aws_vpc" "vpc_b" {
-  provider              = aws.sg
-  cidr_block            = "10.20.0.0/16"
-  enable_dns_support    = true
-  enable_dns_hostnames  = true
-  tags                  = merge(local.tags, { Name = "${local.name_prefix}-vpc-b" })
+# TGW in Sydney (module)
+module "tgw_syd" {
+  source      = "./modules/tgw-basic"
+  tgw_name    = "matt-tgw-poc-tgw"
+  common_tags = local.common_tags
 }
 
-data "aws_availability_zones" "sg" {
-  provider = aws.sg
+# TGW in Singapore (module)
+module "tgw_sg" {
+  source      = "./modules/tgw-basic"
+  providers   = { aws = aws.sg }
+  tgw_name    = "matt-tgw-poc-tgw-sg"
+  common_tags = local.common_tags
 }
 
-resource "aws_subnet" "vpc_b_private_az1" {
-  provider                = aws.sg
-  vpc_id                  = aws_vpc.vpc_b.id
-  cidr_block              = "10.20.1.0/24"
-  availability_zone       = data.aws_availability_zones.sg.names[0]
-  map_public_ip_on_launch = false
-  tags = merge(local.tags, { Name = "${local.name_prefix}-vpc-b-priv-az1" })
+# Attach VPC A to Sydney TGW (module)
+module "attach_syd_vpc_a" {
+  source          = "./modules/tgw-attach-basic"
+  tgw_id          = module.tgw_syd.tgw_id
+  vpc_id          = module.vpc_a.vpc_id
+  subnet_ids      = [module.vpc_a.private_subnet_id]
+  attachment_name = "matt-tgw-poc-syd-vpc-a-attach"
+  common_tags     = local.common_tags
+}
+
+# Attach VPC B to Singapore TGW (module)
+module "attach_sg_vpc_b" {
+  source          = "./modules/tgw-attach-basic"
+  providers       = { aws = aws.sg }
+  tgw_id          = module.tgw_sg.tgw_id
+  vpc_id          = module.vpc_b.vpc_id
+  subnet_ids      = [module.vpc_b.private_subnet_id]
+  attachment_name = "matt-tgw-poc-sg-vpc-b-attach"
+  common_tags     = local.common_tags
 }
 
 output "vpc_a_id" {
-  value       = aws_vpc.vpc_a.id
+  value       = module.vpc_a.vpc_id
   description = "VPC A ID (Sydney)"
 }
 
 output "vpc_b_id" {
-  value       = aws_vpc.vpc_b.id
+  value       = module.vpc_b.vpc_id
   description = "VPC B ID (Singapore)"
 }
-
-locals {
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-  }
-}
-
-# Next steps (will be added incrementally):
-# - Create VPC A in ap-southeast-2 and VPC B in ap-southeast-1
-# - Create Transit Gateway (TGW) in ap-southeast-2
-# - Use AWS RAM to share TGW for cross-region attachment
-# - Attach both VPCs to TGW and configure routes
-
-
