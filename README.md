@@ -1,16 +1,16 @@
-# TGW PoC: Cross-Region VPC Connectivity (Sydney ↔ Singapore)
+# matt-tgw-poc
 
-This repository contains a Terraform proof-of-concept to connect two AWS VPCs located in different regions using an AWS Transit Gateway (TGW) with centralized egress.
+A learning-focused proof-of-concept to understand how two AWS VPCs in different regions can connect via an AWS Transit Gateway (TGW) using a centralized egress model.
 
 - **VPC A**: ap-southeast-2 (Sydney)
 - **VPC B**: ap-southeast-1 (Singapore)
 - **Transit Gateway**: ap-southeast-2 (Sydney)
 - **Cross-region attach**: via AWS RAM share
 
-We follow centralized egress principles similar to PalawanPay's architecture: outbound traffic is aggregated through the TGW, enabling consistent egress controls, inspection, and shared services access.
+### Why this matters
+Centralizing egress via a TGW reduces duplication (e.g., multiple NATs), simplifies inspection, and enforces consistent security controls across VPCs.
 
-## Diagram (Mermaid)
-
+### Architecture (Mermaid)
 ```mermaid
 flowchart LR
   subgraph SYD["ap-southeast-2 (Sydney)"]
@@ -26,31 +26,11 @@ flowchart LR
   B ---|Cross-Region VPC Attachment (RAM)| TGW
 ```
 
-## High-level
-- TGW created in Sydney
-- VPC A (Sydney) and VPC B (Singapore) are attached
-- Route tables on subnets/VPCs point inter-VPC traffic via TGW
-- AWS RAM used for cross-account/region share if needed
+### What we’ll do next (step-by-step commits)
+1) Scaffold minimal Terraform (providers, two VPCs, TGW)
+2) Add cross-region attachment (RAM share + accept)
+3) Add routing so VPC A <-> VPC B via TGW
+4) Optional: tiny EC2s for ping tests
+5) Add a draw.io diagram to `/diagram/`
 
-## Getting Started
-1. Ensure you have appropriate AWS credentials with permissions for VPC, TGW, RAM.
-2. Terraform >= 1.6 recommended.
-3. Initialize and plan:
-   ```bash
-   terraform init
-   terraform plan -out tfplan
-   ```
-4. Apply:
-   ```bash
-   terraform apply tfplan
-   ```
-
-## Connectivity Test (optional)
-- Deploy small EC2 instances in each VPC (modules provided) and attempt ICMP or TCP tests across private IPs.
-
-## Notes on centralized egress
-- Central TGW simplifies outbound inspection and egress policy.
-- Decentralized egress can lead to inconsistent security and duplicated NAT costs; TGW centralization addresses this by routing through shared services/egress.
-
-## draw.io
-A `diagram/tgw-poc.drawio` file will be added. Export PNG/SVG for docs if desired.
+This repo is intentionally minimal to support learning by iterating in small, focused commits.
