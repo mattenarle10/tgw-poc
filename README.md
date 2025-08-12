@@ -1,36 +1,78 @@
 # matt-tgw-poc
 
-A learning-focused proof-of-concept to understand how two AWS VPCs in different regions can connect via an AWS Transit Gateway (TGW) using a centralized egress model.
+A learning-focused proof-of-concept showing how two AWS VPCs in different regions connect via AWS Transit Gateways (TGWs) with centralized egress principles.
 
 - **VPC A**: ap-southeast-2 (Sydney)
 - **VPC B**: ap-southeast-1 (Singapore)
-- **Transit Gateway**: ap-southeast-2 (Sydney)
-- **Cross-region attach**: via AWS RAM share
+- **TGWs**: One TGW per region (Sydney + Singapore), peered together
+- **Goal**: VPC A ↔ TGW (SYD) ↔ TGW (SG) ↔ VPC B
 
 ### Why this matters
-Centralizing egress via a TGW reduces duplication (e.g., multiple NATs), simplifies inspection, and enforces consistent security controls across VPCs.
+Centralizing egress via a TGW reduces duplicated NAT gateways, simplifies traffic inspection, and enforces consistent security controls across VPCs and regions.
 
 ### Architecture (Mermaid)
 ```mermaid
 flowchart LR
   subgraph SYD["ap-southeast-2 (Sydney)"]
     A[VPC A]
-    TGW[Transit Gateway]
-    A ---|VPC Attachment| TGW
+    TGW1[Transit Gateway SYD]
+    A ---|VPC Attachment| TGW1
   end
 
   subgraph SIN["ap-southeast-1 (Singapore)"]
     B[VPC B]
+    TGW2[Transit Gateway SG]
+    B ---|VPC Attachment| TGW2
   end
 
-  B ---|Cross-Region VPC Attachment (RAM)| TGW
+  TGW1 <-. Peering .-> TGW2
 ```
 
-### What we’ll do next (step-by-step commits)
-1) Scaffold minimal Terraform (providers, two VPCs, TGW)
-2) Add cross-region attachment (RAM share + accept)
-3) Add routing so VPC A <-> VPC B via TGW
-4) Optional: tiny EC2s for ping tests
-5) Add a draw.io diagram to `/diagram/`
+### File layout (why there are multiple .tf files)
+Terraform automatically loads all `.tf` files in a directory. Splitting by concern improves readability:
+- `terraform/versions.tf`: Terraform and provider versions
+- `terraform/providers.tf`: AWS providers (default = Sydney, alias `sg` = Singapore)
+- `terraform/main.tf`: Calls modules to create VPCs, TGWs, and attachments
+- `terraform/tgw_peering.tf`: TGW peering between Sydney and Singapore
+- `terraform/routes.tf`: TGW route table associations and routes across TGWs
+- `terraform/vpc_routes.tf`: VPC route tables pointing inter-VPC CIDRs to the TGW
 
-This repo is intentionally minimal to support learning by iterating in small, focused commits.
+You can collapse these into fewer files later; for learning, this separation makes it easier to follow.
+
+### Modules used (simple and descriptive)
+- `modules/vpc`: Creates one VPC + one private subnet
+- `modules/tgw`: Creates one TGW + its route table
+- `modules/tgw-attach`: Attaches a VPC to a TGW
+
+Naming is intentionally simple and purpose-first for learning. In production, you might use a single `vpc` module with options instead of `-basic` variants.
+
+### How to run
+```bash
+cd terraform
+terraform init
+terraform plan -out tfplan
+terraform apply tfplan
+```
+
+### Notes on cross-region TGW
+- A VPC attachment must be in the same region as its TGW.
+- For cross-region connectivity, create a TGW in each region and peer them (what this PoC does).
+- AWS RAM is used for cross-account sharing; not required for same-account TGW peering.
+
+### Optional connectivity test
+- Add a tiny EC2 in each VPC (allow ICMP in SG), then ping private IP across regions.
+- If you want, we can add a minimal EC2 module here to automate the test.
+
+### Draw.io (optional)
+Add `diagram/tgw-poc.drawio` and export to PNG/SVG. The Mermaid diagram above is enough for most PoCs.
+
+### Cleanup
+```bash
+cd terraform
+terraform destroy
+```
+
+### Explaining the naming (what to say in a walkthrough)
+- We favor clarity over cleverness: names include project, region, and purpose (e.g., `matt-tgw-poc-syd-vpc`).
+- Modules are named by what they do: `vpc`, `tgw`, `tgw-attach`.
+- This keeps learning friction low. In a larger codebase, you can consolidate modules and parameterize options.
