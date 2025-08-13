@@ -14,22 +14,22 @@ module "ssm_iam" {
 }
 
 # AMIs
-data "aws_ami" "al2023_euw2" {
+data "aws_ami" "al2_euw2" {
   owners      = ["137112412989"]
   most_recent = true
   filter {
     name   = "name"
-    values = ["al2023-ami-*-kernel-6.*-x86_64"]
+    values = ["amzn2-ami-kernel-5.10-hvm-*-x86_64-gp2"]
   }
 }
 
-data "aws_ami" "al2023_euw3" {
+data "aws_ami" "al2_euw3" {
   provider    = aws.sg
   owners      = ["137112412989"]
   most_recent = true
   filter {
     name   = "name"
-    values = ["al2023-ami-*-kernel-6.*-x86_64"]
+    values = ["amzn2-ami-kernel-5.10-hvm-*-x86_64-gp2"]
   }
 }
 
@@ -131,7 +131,7 @@ module "endpoints_b" {
 module "ec2_a" {
   source               = "./modules/ec2-ssm"
   name                 = "matt-tgw-poc-a"
-  ami_id               = data.aws_ami.al2023_euw2.id
+  ami_id               = data.aws_ami.al2_euw2.id
   subnet_id            = module.vpc_a.private_subnet_id
   security_group_ids   = [aws_security_group.a.id]
   iam_instance_profile = module.ssm_iam.instance_profile_name
@@ -152,7 +152,7 @@ module "ec2_b" {
   source               = "./modules/ec2-ssm"
   providers            = { aws = aws.sg }
   name                 = "matt-tgw-poc-b"
-  ami_id               = data.aws_ami.al2023_euw3.id
+  ami_id               = data.aws_ami.al2_euw3.id
   subnet_id            = module.vpc_b.private_subnet_id
   security_group_ids   = [aws_security_group.b.id]
   iam_instance_profile = module.ssm_iam.instance_profile_name
