@@ -18,15 +18,15 @@ terraform {
 }
 
 variable "region_primary" {
-  description = "Primary AWS region (Sydney)"
+  description = "Primary AWS region (eu-west-2)"
   type        = string
-  default     = "ap-southeast-2"
+  default     = "eu-west-2"
 }
 
 variable "region_secondary" {
-  description = "Secondary AWS region (Singapore)"
+  description = "Secondary AWS region (eu-west-3)"
   type        = string
-  default     = "ap-southeast-1"
+  default     = "eu-west-3"
 }
 
 provider "aws" {

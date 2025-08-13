@@ -2,10 +2,10 @@
 
 A learning-focused proof-of-concept showing how two AWS VPCs in different regions connect via AWS Transit Gateways (TGWs) with centralized egress principles.
 
-- **VPC A**: ap-southeast-2 (Sydney)
-- **VPC B**: ap-southeast-1 (Singapore)
-- **TGWs**: One TGW per region (Sydney + Singapore), peered together
-- **Goal**: VPC A ↔ TGW (SYD) ↔ TGW (SG) ↔ VPC B
+- **VPC A**: eu-west-2 (London)
+- **VPC B**: eu-west-3 (Paris)
+- **TGWs**: One TGW per region (eu-west-2 + eu-west-3), peered together
+- **Goal**: VPC A ↔ TGW (eu-west-2) ↔ TGW (eu-west-3) ↔ VPC B
 
 ### Why this matters
 Centralizing egress via a TGW reduces duplicated NAT gateways, simplifies traffic inspection, and enforces consistent security controls across VPCs and regions.
@@ -13,13 +13,13 @@ Centralizing egress via a TGW reduces duplicated NAT gateways, simplifies traffi
 ### Architecture (Mermaid)
 ```mermaid
 flowchart LR
-  subgraph SYD["ap-southeast-2 (Sydney)"]
+  subgraph EUW2["eu-west-2 (London)"]
     A[VPC A]
     TGW1[Transit Gateway SYD]
     A ---|VPC Attachment| TGW1
   end
 
-  subgraph SIN["ap-southeast-1 (Singapore)"]
+  subgraph EUW3["eu-west-3 (Paris)"]
     B[VPC B]
     TGW2[Transit Gateway SG]
     B ---|VPC Attachment| TGW2
