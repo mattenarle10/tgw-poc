@@ -2,17 +2,7 @@
 
 ## Rely on default associations for VPC attachments
 
-# Associate peering to DEFAULT association RTs (attachments are auto-associated to default RT)
-resource "aws_ec2_transit_gateway_route_table_association" "syd_peer_assoc" {
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_peering_attachment.syd_to_sg.id
-  transit_gateway_route_table_id = module.tgw_syd.tgw_association_default_rt_id
-}
-
-resource "aws_ec2_transit_gateway_route_table_association" "sg_peer_assoc" {
-  provider                       = aws.sg
-  transit_gateway_attachment_id  = aws_ec2_transit_gateway_peering_attachment_accepter.sg_accept.id
-  transit_gateway_route_table_id = module.tgw_sg.tgw_association_default_rt_id
-}
+## Rely on default association for peering attachments as well
 
 ## Rely on default associations for VPC attachments
 
