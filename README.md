@@ -72,7 +72,3 @@ cd terraform
 terraform destroy
 ```
 
-### Explaining the naming (what to say in a walkthrough)
-- We favor clarity over cleverness: names include project, region, and purpose (e.g., `matt-tgw-poc-syd-vpc`).
-- Modules are named by what they do: `vpc`, `tgw`, `tgw-attach`.
-- This keeps learning friction low. In a larger codebase, you can consolidate modules and parameterize options.

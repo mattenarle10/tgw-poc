@@ -1,10 +1,18 @@
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+  }
+}
+
 data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "this" {
   cidr_block           = var.cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
-  tags = merge(var.common_tags, { Name = "${var.resource_name_prefix}-vpc" })
+  tags                 = merge(var.common_tags, { Name = "${var.resource_name_prefix}-vpc" })
 }
 
 resource "aws_subnet" "private" {
