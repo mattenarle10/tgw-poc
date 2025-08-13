@@ -106,8 +106,6 @@ Files added for test:
 
 Note: This approach is preferred over public SSH for least privilege and no internet exposure.
 
-### Draw.io (optional)
-Add `diagram/tgw-poc.drawio` and export to PNG/SVG. The Mermaid diagram above is enough for most PoCs.
 
 ### Cleanup
 ```bash
