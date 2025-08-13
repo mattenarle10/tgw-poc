@@ -137,7 +137,12 @@ module "ec2_a" {
   iam_instance_profile = module.ssm_iam.instance_profile_name
   user_data            = <<-EOT
     #!/bin/bash
-    echo "Bootstrapping SSM agent check" > /var/log/ssm-bootstrap.log
+    set -euo pipefail
+    (
+      dnf install -y amazon-ssm-agent || \
+      yum install -y amazon-ssm-agent || \
+      (apt-get update && apt-get install -y amazon-ssm-agent) || true
+    )
     systemctl enable amazon-ssm-agent || true
     systemctl restart amazon-ssm-agent || true
   EOT
@@ -153,7 +158,12 @@ module "ec2_b" {
   iam_instance_profile = module.ssm_iam.instance_profile_name
   user_data            = <<-EOT
     #!/bin/bash
-    echo "Bootstrapping SSM agent check" > /var/log/ssm-bootstrap.log
+    set -euo pipefail
+    (
+      dnf install -y amazon-ssm-agent || \
+      yum install -y amazon-ssm-agent || \
+      (apt-get update && apt-get install -y amazon-ssm-agent) || true
+    )
     systemctl enable amazon-ssm-agent || true
     systemctl restart amazon-ssm-agent || true
   EOT
