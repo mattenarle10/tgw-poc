@@ -15,13 +15,13 @@ Centralizing egress via a TGW reduces duplicated NAT gateways, simplifies traffi
 flowchart LR
   subgraph EUW2["eu-west-2 (London)"]
     A[VPC A]
-    TGW1[Transit Gateway SYD]
+    TGW1[Transit Gateway EUW2]
     A ---|VPC Attachment| TGW1
   end
 
   subgraph EUW3["eu-west-3 (Paris)"]
     B[VPC B]
-    TGW2[Transit Gateway SG]
+    TGW2[Transit Gateway EUW3]
     B ---|VPC Attachment| TGW2
   end
 
@@ -30,8 +30,7 @@ flowchart LR
 
 ### File layout (why there are multiple .tf files)
 Terraform automatically loads all `.tf` files in a directory. Splitting by concern improves readability:
-- `terraform/versions.tf`: Terraform and provider versions
-- `terraform/providers.tf`: AWS providers (default = Sydney, alias `sg` = Singapore)
+- `terraform/providers.tf`: AWS providers (default = eu-west-2, alias `sg` = eu-west-3)
 - `terraform/main.tf`: Calls modules to create VPCs, TGWs, and attachments
 - `terraform/tgw_peering.tf`: TGW peering between Sydney and Singapore
 - `terraform/routes.tf`: TGW route table associations and routes across TGWs
@@ -71,4 +70,9 @@ Add `diagram/tgw-poc.drawio` and export to PNG/SVG. The Mermaid diagram above is
 cd terraform
 terraform destroy
 ```
+
+### Current apply status
+- Applied successfully. Example outputs:
+  - `vpc_a_id`: vpc-0a8ec1b571139dcf4 (eu-west-2)
+  - `vpc_b_id`: vpc-072d86feed17488a7 (eu-west-3)
 
