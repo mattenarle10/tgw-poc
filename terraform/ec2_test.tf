@@ -17,22 +17,38 @@ module "ssm_iam" {
 data "aws_ami" "al2023_euw2" {
   owners      = ["137112412989"]
   most_recent = true
-  filter { name = "name" values = ["al2023-ami-*-kernel-6.*-x86_64"] }
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-kernel-6.*-x86_64"]
+  }
 }
 
 data "aws_ami" "al2023_euw3" {
   provider    = aws.sg
   owners      = ["137112412989"]
   most_recent = true
-  filter { name = "name" values = ["al2023-ami-*-kernel-6.*-x86_64"] }
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-kernel-6.*-x86_64"]
+  }
 }
 
 # SGs for instances (ICMP allowed between VPCs)
 resource "aws_security_group" "a" {
   name   = "matt-tgw-poc-a-ec2"
   vpc_id = module.vpc_a.vpc_id
-  egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = -1 to_port = -1 protocol = "icmp" cidr_blocks = [module.vpc_b.vpc_cidr] }
+  egress  {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [module.vpc_b.vpc_cidr]
+  }
   tags = local.test_tags
 }
 
@@ -40,8 +56,18 @@ resource "aws_security_group" "b" {
   provider = aws.sg
   name     = "matt-tgw-poc-b-ec2"
   vpc_id   = module.vpc_b.vpc_id
-  egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
-  ingress { from_port = -1 to_port = -1 protocol = "icmp" cidr_blocks = [module.vpc_a.vpc_cidr] }
+  egress  {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [module.vpc_a.vpc_cidr]
+  }
   tags = local.test_tags
 }
 
@@ -49,8 +75,18 @@ resource "aws_security_group" "b" {
 resource "aws_security_group" "endpoints_a" {
   name   = "matt-tgw-poc-a-endpoints"
   vpc_id = module.vpc_a.vpc_id
-  ingress { from_port = 443 to_port = 443 protocol = "tcp" cidr_blocks = [module.vpc_a.vpc_cidr] }
-  egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc_a.vpc_cidr]
+  }
+  egress  {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   tags = local.test_tags
 }
 
@@ -58,8 +94,18 @@ resource "aws_security_group" "endpoints_b" {
   provider = aws.sg
   name   = "matt-tgw-poc-b-endpoints"
   vpc_id = module.vpc_b.vpc_id
-  ingress { from_port = 443 to_port = 443 protocol = "tcp" cidr_blocks = [module.vpc_b.vpc_cidr] }
-  egress  { from_port = 0 to_port = 0 protocol = "-1" cidr_blocks = ["0.0.0.0/0"] }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc_b.vpc_cidr]
+  }
+  egress  {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   tags = local.test_tags
 }
 
