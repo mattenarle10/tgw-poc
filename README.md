@@ -79,6 +79,25 @@ Then in AWS Console:
 - Systems Manager > Fleet Manager: wait until both instances are Managed
 - Start a Session Manager session to instance A and ping instance B’s private IP (see outputs)
 
+### Test with SSM (this PoC)
+1) Confirm instances are Managed in both regions
+   - eu-west-2 and eu-west-3: Systems Manager > Fleet Manager → Managed nodes should show the two EC2s
+2) Get current private IPs from Terraform outputs (on your machine)
+   ```bash
+   cd terraform
+   terraform output -raw ec2_a_private_ip   # 10.10.1.x (eu-west-2)
+   terraform output -raw ec2_b_private_ip   # 10.20.1.x (eu-west-3)
+   ```
+3) Session Manager ping
+   - Start a session on eu-west-2 instance, run: `ping -c 4 <eu-west-3 IP>`
+   - Start a session on eu-west-3 instance, run: `ping -c 4 <eu-west-2 IP>`
+4) If ping fails, check quickly
+   - Security Groups: ICMP allowed from the opposite VPC CIDR (10.10.0.0/16 ↔ 10.20.0.0/16)
+   - Endpoints: VPC Interface Endpoints for `ssm`, `ssmmessages`, `ec2messages` are Available in both VPCs
+   - Service-linked role: `AWSServiceRoleForAmazonSSM` exists
+   - Routes: VPC RT to local TGW; TGW default RTs have static route to opposite VPC via peering
+   - Optional: Reachability Analyzer from one ENI to the other to pinpoint any block
+
 Files added for test:
 - `terraform/modules/ssm-iam`: IAM role/profile for SSM
 - `terraform/modules/ssm-endpoints`: VPC Interface Endpoints for SSM services
