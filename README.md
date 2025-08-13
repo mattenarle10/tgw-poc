@@ -62,6 +62,31 @@ terraform apply tfplan
 - Add a tiny EC2 in each VPC (allow ICMP in SG), then ping private IP across regions.
 - If you want, we can add a minimal EC2 module here to automate the test.
 
+### EC2 ping test (SSM-based, best practice)
+This repo includes an optional, private-only test using AWS Systems Manager (SSM):
+- Two EC2s (one per VPC) without public IPs
+- SSM IAM role/profile for the instances
+- VPC Interface Endpoints for SSM/SSMMessages/EC2Messages in each VPC
+- Security groups allow ICMP only between VPC CIDRs
+
+How to run:
+```bash
+cd terraform
+terraform plan -out tfplan -input=false
+terraform apply -auto-approve tfplan
+```
+Then in AWS Console:
+- Systems Manager > Fleet Manager: wait until both instances are Managed
+- Start a Session Manager session to instance A and ping instance B’s private IP (see outputs)
+
+Files added for test:
+- `terraform/modules/ssm-iam`: IAM role/profile for SSM
+- `terraform/modules/ssm-endpoints`: VPC Interface Endpoints for SSM services
+- `terraform/modules/ec2-ssm`: EC2 instance wired to SSM
+- `terraform/ec2_test.tf`: SGs, endpoints per VPC, and two EC2s + outputs
+
+Note: This approach is preferred over public SSH for least privilege and no internet exposure.
+
 ### Draw.io (optional)
 Add `diagram/tgw-poc.drawio` and export to PNG/SVG. The Mermaid diagram above is enough for most PoCs.
 
