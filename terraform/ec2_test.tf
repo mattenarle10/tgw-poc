@@ -135,6 +135,12 @@ module "ec2_a" {
   subnet_id            = module.vpc_a.private_subnet_id
   security_group_ids   = [aws_security_group.a.id]
   iam_instance_profile = module.ssm_iam.instance_profile_name
+  user_data            = <<-EOT
+    #!/bin/bash
+    echo "Bootstrapping SSM agent check" > /var/log/ssm-bootstrap.log
+    systemctl enable amazon-ssm-agent || true
+    systemctl restart amazon-ssm-agent || true
+  EOT
 }
 
 module "ec2_b" {
@@ -145,6 +151,12 @@ module "ec2_b" {
   subnet_id            = module.vpc_b.private_subnet_id
   security_group_ids   = [aws_security_group.b.id]
   iam_instance_profile = module.ssm_iam.instance_profile_name
+  user_data            = <<-EOT
+    #!/bin/bash
+    echo "Bootstrapping SSM agent check" > /var/log/ssm-bootstrap.log
+    systemctl enable amazon-ssm-agent || true
+    systemctl restart amazon-ssm-agent || true
+  EOT
 }
 
 output "ec2_a_private_ip" { value = module.ec2_a.private_ip }
