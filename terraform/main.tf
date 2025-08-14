@@ -27,14 +27,14 @@ module "vpc_b" {
 }
 
 # TGW in eu-west-2 (module)
-module "tgw_syd" {
+module "tgw_euw2" {
   source      = "./modules/tgw"
   tgw_name    = "matt-tgw-poc-tgw-euw2"
   common_tags = local.common_tags
 }
 
 # TGW in eu-west-3 (module)
-module "tgw_sg" {
+module "tgw_euw3" {
   source      = "./modules/tgw"
   providers   = { aws = aws.sg }
   tgw_name    = "matt-tgw-poc-tgw-euw3"
@@ -42,9 +42,9 @@ module "tgw_sg" {
 }
 
 # Attach VPC A to eu-west-2 TGW (module)
-module "attach_syd_vpc_a" {
+module "attach_euw2_vpc_a" {
   source          = "./modules/tgw-attach"
-  tgw_id          = module.tgw_syd.tgw_id
+  tgw_id          = module.tgw_euw2.tgw_id
   vpc_id          = module.vpc_a.vpc_id
   subnet_ids      = [module.vpc_a.private_subnet_id]
   attachment_name = "matt-tgw-poc-euw2-vpc-a-attach"
@@ -52,10 +52,10 @@ module "attach_syd_vpc_a" {
 }
 
 # Attach VPC B to eu-west-3 TGW (module)
-module "attach_sg_vpc_b" {
+module "attach_euw3_vpc_b" {
   source          = "./modules/tgw-attach"
   providers       = { aws = aws.sg }
-  tgw_id          = module.tgw_sg.tgw_id
+  tgw_id          = module.tgw_euw3.tgw_id
   vpc_id          = module.vpc_b.vpc_id
   subnet_ids      = [module.vpc_b.private_subnet_id]
   attachment_name = "matt-tgw-poc-euw3-vpc-b-attach"
@@ -64,10 +64,10 @@ module "attach_sg_vpc_b" {
 
 output "vpc_a_id" {
   value       = module.vpc_a.vpc_id
-  description = "VPC A ID (Sydney)"
+  description = "VPC A ID (eu-west-2)"
 }
 
 output "vpc_b_id" {
   value       = module.vpc_b.vpc_id
-  description = "VPC B ID (Singapore)"
+  description = "VPC B ID (eu-west-3)"
 }
