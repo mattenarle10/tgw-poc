@@ -91,6 +91,11 @@ Then in AWS Console:
 3) Session Manager ping
    - Start a session on eu-west-2 instance, run: `ping -c 4 <eu-west-3 IP>`
    - Start a session on eu-west-3 instance, run: `ping -c 4 <eu-west-2 IP>`
+   - Example results from this PoC:
+     
+     ![London → Paris ping (eu-west-2 → eu-west-3)](docs/london-to-paris.png)
+     
+     ![Paris → London ping (eu-west-3 → eu-west-2)](docs/paris-to-london.png)
 4) If ping fails, check quickly
    - Security Groups: ICMP allowed from the opposite VPC CIDR (10.10.0.0/16 ↔ 10.20.0.0/16)
    - Endpoints: VPC Interface Endpoints for `ssm`, `ssmmessages`, `ec2messages` are Available in both VPCs
