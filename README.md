@@ -54,13 +54,6 @@ terraform apply tfplan
 - A VPC attachment must be in the same region as its TGW.
 - For cross-region connectivity, create a TGW in each region and peer them (what this PoC does).
 
-How to run:
-```bash
-cd terraform
-terraform plan -out tfplan -input=false
-terraform apply -auto-approve tfplan
-```
-
 ### Test with SSM (this PoC)
 1) Confirm instances are Managed in both regions
    - eu-west-2 and eu-west-3: Systems Manager > Fleet Manager → Managed nodes should show the two EC2s
