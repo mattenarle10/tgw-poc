@@ -1,6 +1,6 @@
 # matt-tgw-poc
 
-A learning-focused proof-of-concept showing how two AWS VPCs in different regions connect via AWS Transit Gateways (TGWs) with centralized egress principles.
+A proof-of-concept showing how two AWS VPCs in different regions connect via AWS Transit Gateways (TGWs).
 
 - **VPC A**: eu-west-2 (London)
 - **VPC B**: eu-west-3 (Paris)
@@ -96,12 +96,8 @@ Then in AWS Console:
      ![London → Paris ping (eu-west-2 → eu-west-3)](docs/london-to-paris.png)
      
      ![Paris → London ping (eu-west-3 → eu-west-2)](docs/paris-to-london.png)
-4) If ping fails, check quickly
-   - Security Groups: ICMP allowed from the opposite VPC CIDR (10.10.0.0/16 ↔ 10.20.0.0/16)
-   - Endpoints: VPC Interface Endpoints for `ssm`, `ssmmessages`, `ec2messages` are Available in both VPCs
-   - Service-linked role: `AWSServiceRoleForAmazonSSM` exists
-   - Routes: VPC RT to local TGW; TGW default RTs have static route to opposite VPC via peering
-   - Optional: Reachability Analyzer from one ENI to the other to pinpoint any block
+     
+4) Voila! You can now ping cross region through transit gateways! 
 
 Files added for test:
 - `terraform/modules/ssm-iam`: IAM role/profile for SSM
@@ -109,7 +105,7 @@ Files added for test:
 - `terraform/modules/ec2-ssm`: EC2 instance wired to SSM
 - `terraform/ec2_test.tf`: SGs, endpoints per VPC, and two EC2s + outputs
 
-Note: This approach is preferred over public SSH for least privilege and no internet exposure.
+Note: This approach is preferred over public SSH for least privilege and no internet exposure.!
 
 
 ### Cleanup
@@ -118,8 +114,8 @@ cd terraform
 terraform destroy
 ```
 
-### Current apply status
-- Applied successfully. Example outputs:
-  - `vpc_a_id`: vpc-0a8ec1b571139dcf4 (eu-west-2)
-  - `vpc_b_id`: vpc-072d86feed17488a7 (eu-west-3)
+### realizations and next steps
+- centralized egress: hub egress vpc (euw2) on tgw; app vpcs send 0.0.0.0/0 → local tgw; tgw 0.0.0.0/0 → egress (nat/network firewall).
+- centralized ingress: edge vpc (alb/nlb + waf) on tgw; edge → app vpc cidrs via tgw.
+- cross-account: share tgw via ram; hub + shared-services in a network account.
 
