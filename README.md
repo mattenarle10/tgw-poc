@@ -28,7 +28,7 @@ flowchart LR
   TGW1 <-. Peering .-> TGW2
 ```
 
-### File layout (why there are multiple .tf files)
+### File layout 
 Terraform automatically loads all `.tf` files in a directory. Splitting by concern improves readability:
 - `terraform/providers.tf`: AWS providers (default = eu-west-2, alias `sg` = eu-west-3)
 - `terraform/main.tf`: Calls modules to create VPCs, TGWs, and attachments
@@ -36,14 +36,11 @@ Terraform automatically loads all `.tf` files in a directory. Splitting by conce
 - `terraform/routes.tf`: TGW route table associations and routes across TGWs
 - `terraform/vpc_routes.tf`: VPC route tables pointing inter-VPC CIDRs to the TGW
 
-You can collapse these into fewer files later; for learning, this separation makes it easier to follow.
 
-### Modules used (simple and descriptive)
+### Modules 
 - `modules/vpc`: Creates one VPC + one private subnet
 - `modules/tgw`: Creates one TGW + its route table
 - `modules/tgw-attach`: Attaches a VPC to a TGW
-
-Naming is intentionally simple and purpose-first for learning. In production, you might use a single `vpc` module with options instead of `-basic` variants.
 
 ### How to run
 ```bash
@@ -56,18 +53,6 @@ terraform apply tfplan
 ### Notes on cross-region TGW
 - A VPC attachment must be in the same region as its TGW.
 - For cross-region connectivity, create a TGW in each region and peer them (what this PoC does).
-- AWS RAM is used for cross-account sharing; not required for same-account TGW peering.
-
-### Optional connectivity test
-- Add a tiny EC2 in each VPC (allow ICMP in SG), then ping private IP across regions.
-- If you want, we can add a minimal EC2 module here to automate the test.
-
-### EC2 ping test (SSM-based, best practice)
-This repo includes an optional, private-only test using AWS Systems Manager (SSM):
-- Two EC2s (one per VPC) without public IPs
-- SSM IAM role/profile for the instances
-- VPC Interface Endpoints for SSM/SSMMessages/EC2Messages in each VPC
-- Security groups allow ICMP only between VPC CIDRs
 
 How to run:
 ```bash
@@ -75,9 +60,6 @@ cd terraform
 terraform plan -out tfplan -input=false
 terraform apply -auto-approve tfplan
 ```
-Then in AWS Console:
-- Systems Manager > Fleet Manager: wait until both instances are Managed
-- Start a Session Manager session to instance A and ping instance B’s private IP (see outputs)
 
 ### Test with SSM (this PoC)
 1) Confirm instances are Managed in both regions
@@ -90,12 +72,9 @@ Then in AWS Console:
    ```
 3) Session Manager ping
    - Start a session on eu-west-2 instance, run: `ping -c 4 <eu-west-3 IP>`
+        ![London → Paris ping (eu-west-2 → eu-west-3)](docs/london-to-paris.png)
    - Start a session on eu-west-3 instance, run: `ping -c 4 <eu-west-2 IP>`
-   - Example results from this PoC:
-     
-     ![London → Paris ping (eu-west-2 → eu-west-3)](docs/london-to-paris.png)
-     
-     ![Paris → London ping (eu-west-3 → eu-west-2)](docs/paris-to-london.png)
+        ![Paris → London ping (eu-west-3 → eu-west-2)](docs/paris-to-london.png)
      
 4) Voila! You can now ping cross region through transit gateways! 
 
