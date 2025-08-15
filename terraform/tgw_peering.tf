@@ -1,9 +1,6 @@
-
-
-
 resource "aws_ec2_transit_gateway_peering_attachment" "euw2_to_euw3" {
-  transit_gateway_id      = module.tgw_syd.tgw_id
-  peer_transit_gateway_id = module.tgw_sg.tgw_id
+  transit_gateway_id      = module.tgw_euw2.tgw_id
+  peer_transit_gateway_id = module.tgw_euw3.tgw_id
   peer_region             = var.region_secondary
 
   tags = {
